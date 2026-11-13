@@ -320,6 +320,8 @@ SELECT
 FROM employees emp
 	JOIN title_emps tite
 		ON emp.emp_id = tite.emp_id 
+			AND fire_at IS NULL -- 풀이 이후 추가 
+			AND tite.end_at IS NULL -- 풀이 이후 추가 
 			AND gender = 'F'
 GROUP BY tite.title_code -- HAVING COUNT(gender)
 ;
@@ -338,7 +340,7 @@ FROM employees emp
 	JOIN titles tit 
 		ON tit.title_code = tite.title_code -- 명까진 필요없음, 아래 , tit.title 포함 
 GROUP BY tite.title_code, tit.title 
-ORDER BY tite.title_code ASC 
+ORDER BY tite.title_code ASC -- ASC 생략 가능 
 ;
 
 -- ------------------------------
@@ -351,12 +353,31 @@ FROM salaries sal
 	JOIN employees emp 
 		ON sal.emp_id = emp.emp_id 
 			AND sal.end_at IS NULL 
+WHERE 
+	
 GROUP BY sal.salary 
 	HAVING sal.salary > AVG(sal.salary)
 ;
 
 -- 풀이 
-
+SELECT 
+	emp.emp_id
+	, emp.`name` 
+	, sal.salary 
+FROM employees emp
+	JOIN salaries sal 
+		ON sal.emp_id = emp.emp_id 
+			AND sal.end_at IS NULL 
+			AND emp.fire_at IS NULL 
+WHERE 
+	sal.salary >= (
+		SELECT
+			AVG(salary)
+		FROM salaries 
+		WHERE 
+			end_at IS NULL 
+	)
+ORDER BY sal.salary ASC 
 ;
 
 -- 가장 높은 급여를 받은 이력이있는 사원의 사번과 급여를 조회
@@ -371,5 +392,14 @@ WHERE
 ;
 
 -- 풀이 
-
+SELECT 
+	emp_id
+	, salary
+FROM salaries 
+WHERE 
+	salary = (
+		SELECT 
+			MAX(salary)
+		FROM salaries
+	)
 ;
